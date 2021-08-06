@@ -1,3 +1,3 @@
 from maze_gen import *
 
-gen = Generator(columns=15)
+gen = Generator(rows=15, columns=15)
