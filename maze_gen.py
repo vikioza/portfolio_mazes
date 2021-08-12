@@ -21,15 +21,19 @@ class Generator:
 			for j in range(self.row_size):
 				self.maze.append(0b1111)
 
-		self.print_maze(index=True)
-		self._iterative_backtracking()
-		self.print_maze()
+		# self.print_maze(index=True)
+
+		if algo == 'iter-back':
+			self._iterative_backtracking()
+
+		# self.print_maze()
 
 	def print_maze(self, /, index=False):
 		if index:
 			self._print_indexes()
 			return
 
+		print()
 		for row in range(self.col_size):
 			line = []
 			for row_tile in range(self.row_size):
@@ -53,15 +57,15 @@ class Generator:
 		self._print_cell_state(index)
 
 	def _print_cell_state(self, index):
-		margin = 4
-		print(f"cell index: {index:>4d}")
+		margin = 8
+		print(f"cell index: {index:>{margin}d}")
 		print(f"row:        {utils.get_row(index, self.row_size):>{margin}d}")
-		print(f"column:     {utils.get_column(index, self.row_size):>4d}")
-		print(f"cell state: {self.maze[index]:04b}")
-		print(f"top:        {utils.top(self.maze[index]):>4d}")
-		print(f"right:      {utils.right(self.maze[index]):>4d}")
-		print(f"bottom:     {utils.bottom(self.maze[index]):>4d}")
-		print(f"left:       {utils.left(self.maze[index]):>4d}")
+		print(f"column:     {utils.get_column(index, self.row_size):>{margin}d}")
+		print(f"cell state: {self.maze[index]:08b}")
+		print(f"top:        {utils.top(self.maze[index]):>{margin}d}")
+		print(f"right:      {utils.right(self.maze[index]):>{margin}d}")
+		print(f"bottom:     {utils.bottom(self.maze[index]):>{margin}d}")
+		print(f"left:       {utils.left(self.maze[index]):>{margin}d}")
 
 	def _iterative_backtracking(self):
 		first, last = self._choose_exits()
@@ -79,6 +83,11 @@ class Generator:
 			self.maze[next_cell] = utils.mark_visited(self.maze[next_cell])
 			stack.append(next_cell)
 
+		print("\nChecking first:")
+		self.print_cell_state_by_index(first)
+		print("\nChecking last:")
+		self.print_cell_state_by_index(last)
+
 	def _choose_exits(self):
 		""" Randomly selects 2 cells from the maze's periphery and removes their outside walls """
 
@@ -86,6 +95,8 @@ class Generator:
 		candidates = self._select_candidates()
 		print("\nChoosing exits")
 		first, last = random.sample(candidates, 2)
+		self.maze[first] = utils.mark_start(self.maze[first])
+		self.maze[last] = utils.mark_end(self.maze[last])
 
 		print("\nRemoving first exit wall")
 		self._remove_exit_wall(first)
