@@ -1,8 +1,7 @@
+import utils
 import pygame
 import math
-import utils
 
-TIMEOUT = 1
 WIDTH = 720
 MARGIN = 20
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
@@ -49,15 +48,15 @@ def draw(row_size, col_size, maze):
 		y = utils.get_row(i, row_size) * tile_size + 5
 		# print(f"i: {i}; tile: {tile}; x: {x}; y: {y}; size: {tile_size}")
 
-		if utils.start(tile):
+		if utils.entrance_tile(tile):
 			# print(f"Start coords: [{math.floor(x / tile_size)},{math.floor(y / tile_size)}]")
-			pygame.draw.rect(WIN, ORANGE, (x, y, tile_size+1, tile_size+1))
+			pygame.draw.rect(WIN, ORANGE, (x+1, y+1, tile_size-1, tile_size-1))
 			draw_walls(WIN, tile, x, y, tile_size)
 			continue
 
-		if utils.end(tile):
+		if utils.exit_tile(tile):
 			# print(f"End coords: [{math.floor(x / tile_size)},{math.floor(y / tile_size)}]")
-			pygame.draw.rect(WIN, GREEN, (x, y, tile_size, tile_size))
+			pygame.draw.rect(WIN, GREEN, (x+1, y+1, tile_size-1, tile_size-1))
 			draw_walls(WIN, tile, x, y, tile_size)
 			continue
 
@@ -65,4 +64,9 @@ def draw(row_size, col_size, maze):
 		draw_walls(WIN, tile, x, y, tile_size)
 
 	pygame.display.update()
+
+
+def draw_tile(tile_type: str, tile_size: int):
+	if tile_type == "entrance":
+		pass
 

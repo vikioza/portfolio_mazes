@@ -7,15 +7,22 @@ class Generator:
 	ToDo description
 	"""
 
-	def __init__(self, /, rows: int = 10, columns: int = 10, algo='iter-back'):
+	def __init__(self):
 		self.row_size = None
 		self.col_size = None
-		self.maze = []
-		self.init_maze(rows, columns, algo)
+		self.maze = None
 
 	def init_maze(self, /, rows: int = 10, columns: int = 10, algo='iter-back'):
+		"""
+
+		:param rows:
+		:param columns:
+		:param algo:
+		:return:
+		"""
 		self.row_size = columns
 		self.col_size = rows
+		self.maze = []
 
 		for i in range(self.col_size):
 			for j in range(self.row_size):
@@ -23,10 +30,12 @@ class Generator:
 
 		# self.print_maze(index=True)
 
+		first, last = 0, 0
 		if algo == 'iter-back':
-			self._iterative_backtracking()
+			first, last = self._iterative_backtracking()
 
 		# self.print_maze()
+		return self.maze, self.row_size, self.col_size, first, last
 
 	def print_maze(self, /, index=False):
 		if index:
@@ -40,6 +49,13 @@ class Generator:
 				line.append(self.maze[row * self.row_size + row_tile])
 			print(line)
 
+	def print_cell_state_by_coords(self, row, row_tile):
+		index = row * self.row_size + row_tile
+		self._print_cell_state(index)
+
+	def print_cell_state_by_index(self, index):
+		self._print_cell_state(index)
+
 	def _print_indexes(self):
 		margin = len(str(self.row_size * self.col_size))
 
@@ -48,13 +64,6 @@ class Generator:
 			for row_tile in range(self.row_size):
 				line.append(f"{row * self.row_size + row_tile:{margin}d}")
 			print(line)
-
-	def print_cell_state_by_coords(self, row, row_tile):
-		index = row * self.row_size + row_tile
-		self._print_cell_state(index)
-
-	def print_cell_state_by_index(self, index):
-		self._print_cell_state(index)
 
 	def _print_cell_state(self, index):
 		margin = 8
@@ -74,7 +83,7 @@ class Generator:
 
 		while len(stack) > 0:
 			current = stack.pop(-1)
-			neighbors = self._unvisited_neighbors(current)
+			neighbors = utils.unvisited_neighbors(self, current)
 			if len(neighbors) == 0:
 				continue
 			stack.append(current)
@@ -88,6 +97,8 @@ class Generator:
 		print("\nChecking last:")
 		self.print_cell_state_by_index(last)
 
+		return first, last
+
 	def _choose_exits(self):
 		""" Randomly selects 2 cells from the maze's periphery and removes their outside walls """
 
@@ -95,8 +106,8 @@ class Generator:
 		candidates = self._select_candidates()
 		print("\nChoosing exits")
 		first, last = random.sample(candidates, 2)
-		self.maze[first] = utils.mark_start(self.maze[first])
-		self.maze[last] = utils.mark_end(self.maze[last])
+		self.maze[first] = utils.mark_entrance(self.maze[first])
+		self.maze[last] = utils.mark_exit(self.maze[last])
 
 		print("\nRemoving first exit wall")
 		self._remove_exit_wall(first)
@@ -176,33 +187,6 @@ class Generator:
 			return 1
 
 		return 0
-
-	def _unvisited_neighbors(self, current):
-		""" Checks for unvisited neighbors and returns them as a list """
-
-		neighbors = []
-
-		if utils.get_row(current, self.row_size) > 0:
-			n_index = current - self.row_size
-			if not utils.visited(self.maze[n_index]):
-				neighbors.append(n_index)
-
-		if utils.get_column(current, self.row_size) < self.row_size - 1:
-			n_index = current + 1
-			if not utils.visited(self.maze[n_index]):
-				neighbors.append(n_index)
-
-		if utils.get_row(current, self.row_size) < self.col_size - 1:
-			n_index = current + self.row_size
-			if not utils.visited(self.maze[n_index]):
-				neighbors.append(n_index)
-
-		if utils.get_column(current, self.row_size) > 0:
-			n_index = current - 1
-			if not utils.visited(self.maze[n_index]):
-				neighbors.append(n_index)
-
-		return neighbors
 
 	def _remove_walls(self, current, next_cell):
 		""" Removes walls between adjacent cells """
