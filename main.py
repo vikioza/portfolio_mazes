@@ -1,4 +1,4 @@
-from maze_gen import *
+from maze import *
 from maze_viz import *
 from maze_solver import *
 from time import sleep
@@ -9,13 +9,13 @@ TIMEOUT = 1
 
 
 def main():
-	gen = Generator()
-	gen.init_maze(rows=ROWS, columns=COLUMNS)
-
+	maze = Maze(ROWS, COLUMNS)
 	solver = Solver
+
+	tiles, row_size, col_size = maze.get_details()[:3]
 	run = True
 	while run:
-		draw(gen.row_size, gen.col_size, gen.maze)
+		MazeViz.draw_maze(tiles, row_size, col_size)
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -26,4 +26,5 @@ def main():
 	pygame.quit()
 
 
-main()
+if __name__ == "__main__":
+	main()

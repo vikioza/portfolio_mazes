@@ -1,4 +1,3 @@
-import utils
 import queue
 
 
@@ -13,19 +12,8 @@ class Solver:
 		self.first = None
 		self.last = None
 
-	def solve(self, maze, rows, columns, entrance_tile, exit_tile, /, algo: str = "depth-first"):
-		"""
-		index = current_row * row_size + current_column
-
-		:param maze: 1D array of maze tiles
-		:param rows: number of rows in the mze
-		:param columns: number of columns in the maze
-		:param entrance_tile: index of the entrance tile
-		:param exit_tile: index of the maze's exit
-		:param algo: Determines which algorithm will be used to solve the maze. Options: depth-first, breadth-first,
-			dijkstra, a-star
-		:return:
-		"""
+	def find_path(self, maze, rows, columns, entrance_tile, exit_tile, /, algo: str = "depth-first"):
+		"""index = current_row * row_size + current_column"""
 		self.maze = maze
 		self.row_size = columns
 		self.col_size = rows
@@ -48,15 +36,19 @@ class Solver:
 		return path
 
 	def _depth_first(self):
+		
 		return []
 
 	def _breadth_first(self):
+
 		return []
 
 	def _dijkstra(self):
+
 		return []
 
 	def _astar(self):
+
 		return []
 
 	def _init_shortest_paths(self):
