@@ -1,9 +1,10 @@
 import pygame
 from tile import *
-
+from math import ceil
 
 WIDTH = 720
-MARGIN = 20
+BORDER_MARGIN = 20
+MAZE_MARGIN = 5
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("Pathfinding Algorithm Visualization")
 
@@ -20,74 +21,78 @@ TURQUOISE = (64, 224, 208)
 
 
 class MazeViz:
+	row_size: int
+	col_size: int
+	tile_size: int
 
-	@classmethod
-	def draw_maze(cls, tiles, row_size, col_size):
+	def __init__(self, row_size, col_size):
 		WIN.fill(GREY)
-		width = WIDTH - MARGIN
-		tile_width = width / row_size
-		tile_height = width / col_size
-		tile_size = min(tile_width, tile_height)
+		width = WIDTH - BORDER_MARGIN
+		self.row_size = row_size
+		self.col_size = col_size
+		tile_width = width / self.row_size
+		tile_height = width / self.col_size
+		self.tile_size = ceil(min(tile_width, tile_height))
 
-		cls.draw_tiles(tiles, row_size, tile_size)
+	def draw_maze(self, tiles):
+		self._draw_tiles(tiles)
 		pygame.display.update()
 
-	@classmethod
-	def draw_tiles(cls, tiles, row_size, tile_size):
+	def _draw_tiles(self, tiles):
 		for i, tile in enumerate(tiles):
-			x = get_column(i, row_size) * tile_size + 5
-			y = get_row(i, row_size) * tile_size + 5
-			cls.draw_tile(tile, x, y, tile_size)
+			x, y = self.get_coords(i)
+			self.draw_tile(tile, x, y)
 
-	@classmethod
-	def draw_tile(cls, tile: Tile, x: int, y: int, tile_size: int):
+	def draw_tile(self, tile: Tile, x: int, y: int):
 		if tile.entrance_tile():
-			cls.draw_entrance(tile, x, y, tile_size)
+			self._draw_entrance(tile, x, y)
 			return
 
 		if tile.exit_tile():
-			cls.draw_exit(tile, x, y, tile_size)
+			self._draw_exit(tile, x, y)
 			return
 
-		cls.draw_hallway(tile, x, y, tile_size)
+		if tile.visited():
+			self.draw_visited(tile, x, y)
+			return
 
-	@classmethod
-	def draw_entrance(cls, tile: Tile, x: int, y: int, tile_size: int):
-		pygame.draw.rect(WIN, ORANGE, (x + 1, y + 1, tile_size - 1, tile_size - 1))
-		cls.draw_walls(WIN, tile, x, y, tile_size)
+		self._draw_hallway(tile, x, y)
 
-	@classmethod
-	def draw_exit(cls, tile: Tile, x: int, y: int, tile_size: int):
-		pygame.draw.rect(WIN, GREEN, (x + 1, y + 1, tile_size - 1, tile_size - 1))
-		cls.draw_walls(WIN, tile, x, y, tile_size)
+	def _draw_entrance(self, tile: Tile, x: int, y: int):
+		pygame.draw.rect(WIN, ORANGE, (x + 1, y + 1, self.tile_size - 1, self.tile_size - 1))
+		self._draw_walls(WIN, tile, x, y)
 
-	@classmethod
-	def draw_hallway(cls, tile: Tile, x: int, y: int, tile_size: int):
-		pygame.draw.rect(WIN, WHITE, (x, y, tile_size, tile_size))
-		cls.draw_walls(WIN, tile, x, y, tile_size)
+	def _draw_exit(self, tile: Tile, x: int, y: int):
+		pygame.draw.rect(WIN, GREEN, (x + 1, y + 1, self.tile_size - 1, self.tile_size - 1))
+		self._draw_walls(WIN, tile, x, y)
 
-	@classmethod
-	def draw_visited(cls, tile: Tile, x: int, y: int, tile_size: int):
-		pygame.draw.rect(WIN, TURQUOISE, (x, y, tile_size, tile_size))
-		cls.draw_walls(WIN, tile, x, y, tile_size)
+	def _draw_hallway(self, tile: Tile, x: int, y: int):
+		pygame.draw.rect(WIN, WHITE, (x, y, self.tile_size, self.tile_size))
+		self._draw_walls(WIN, tile, x, y)
 
-	@classmethod
-	def draw_best(cls, tile: Tile, x: int, y: int, tile_size: int):
-		pygame.draw.rect(WIN, PURPLE, (x, y, tile_size, tile_size))
-		cls.draw_walls(WIN, tile, x, y, tile_size)
+	def draw_visited(self, tile: Tile, x: int, y: int):
+		pygame.draw.rect(WIN, TURQUOISE, (x, y, self.tile_size, self.tile_size))
+		self._draw_walls(WIN, tile, x, y)
 
-	@classmethod
-	def draw_current(cls, tile: Tile, x: int, y: int, tile_size: int):
-		pygame.draw.rect(WIN, YELLOW, (x, y, tile_size, tile_size))
-		cls.draw_walls(WIN, tile, x, y, tile_size)
+	def draw_best(self, tile: Tile, x: int, y: int):
+		pygame.draw.rect(WIN, PURPLE, (x, y, self.tile_size, self.tile_size))
+		self._draw_walls(WIN, tile, x, y)
 
-	@staticmethod
-	def draw_walls(win, tile, x, y, tile_size):
+	def draw_current(self, tile: Tile, x: int, y: int):
+		pygame.draw.rect(WIN, YELLOW, (x, y, self.tile_size, self.tile_size))
+		self._draw_walls(WIN, tile, x, y)
+
+	def _draw_walls(self, win, tile, x, y):
 		if tile.has_top():
-			pygame.draw.line(win, BLACK, (x, y), (x + tile_size, y))
+			pygame.draw.line(win, BLACK, (x, y), (x + self.tile_size, y))
 		if tile.has_right():
-			pygame.draw.line(win, BLACK, (x + tile_size, y), (x + tile_size, y + tile_size))
+			pygame.draw.line(win, BLACK, (x + self.tile_size, y), (x + self.tile_size, y + self.tile_size))
 		if tile.has_bottom():
-			pygame.draw.line(win, BLACK, (x, y + tile_size), (x + tile_size, y + tile_size))
+			pygame.draw.line(win, BLACK, (x, y + self.tile_size), (x + self.tile_size, y + self.tile_size))
 		if tile.has_left():
-			pygame.draw.line(win, BLACK, (x, y), (x, y + tile_size))
+			pygame.draw.line(win, BLACK, (x, y), (x, y + self.tile_size))
+
+	def get_coords(self, index):
+		x = get_column(index, self.row_size) * self.tile_size + MAZE_MARGIN
+		y = get_row(index, self.row_size) * self.tile_size + MAZE_MARGIN
+		return x, y

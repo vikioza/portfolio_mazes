@@ -6,25 +6,24 @@ class Maze:
 	"""ToDo description"""
 	row_size: int
 	col_size: int
-	maze: list
+	tiles: list
 	first: int
 	last: int
 
 	def __init__(self, /, rows: int = 10, columns: int = 10, algo='iter-back'):
 		self.row_size: int = columns
 		self.col_size: int = rows
-		self.maze: list = []
+		self.tiles: list = []
 
-		for i in range(self.col_size):
-			for j in range(self.row_size):
-				self.maze.append(Tile())
+		self.tiles = [Tile() for _ in range(self.col_size * self.row_size)]
 
 		self.first, self.last = 0, 0
 		if algo == 'iter-back':
 			self.first, self.last = self._iterative_backtracking()
+			self.clear_visited()
 
 	def get_details(self):
-		return self.maze, self.row_size, self.col_size, self.first, self.last
+		return self.tiles, self.row_size, self.col_size, self.first, self.last
 
 	def print_maze(self, /, index=False):
 		"""
@@ -40,7 +39,7 @@ class Maze:
 		for row in range(self.col_size):
 			line = []
 			for row_tile in range(self.row_size):
-				line.append(self.maze[row * self.row_size + row_tile].get_state())
+				line.append(self.tiles[row * self.row_size + row_tile].get_state())
 			print(line)
 
 	def _print_indexes(self):
@@ -64,16 +63,16 @@ class Maze:
 		print(f"self index: {index:>{margin}d}")
 		print(f"row:        {get_row(index, self.row_size):>{margin}d}")
 		print(f"column:     {get_column(index, self.row_size):>{margin}d}")
-		print(f"self state: {self.maze[index].get_state():08b}")
-		print(f"top:        {self.maze[index].has_top():>{margin}d}")
-		print(f"right:      {self.maze[index].has_right():>{margin}d}")
-		print(f"bottom:     {self.maze[index].has_bottom():>{margin}d}")
-		print(f"left:       {self.maze[index].has_left():>{margin}d}")
+		print(f"self state: {self.tiles[index].get_state():08b}")
+		print(f"top:        {self.tiles[index].has_top():>{margin}d}")
+		print(f"right:      {self.tiles[index].has_right():>{margin}d}")
+		print(f"bottom:     {self.tiles[index].has_bottom():>{margin}d}")
+		print(f"left:       {self.tiles[index].has_left():>{margin}d}")
 
 	def _iterative_backtracking(self):
 		self.first, self.last = self._choose_exits()
 		stack = [self.first]
-		self.maze[self.first].mark_visited()
+		self.tiles[self.first].mark_visited()
 
 		while len(stack) > 0:
 			current = stack.pop(-1)
@@ -83,7 +82,7 @@ class Maze:
 			stack.append(current)
 			next_cell = choice(neighbors)
 			self._remove_walls(current, next_cell)
-			self.maze[next_cell].mark_visited()
+			self.tiles[next_cell].mark_visited()
 			stack.append(next_cell)
 
 		return self.first, self.last
@@ -93,8 +92,8 @@ class Maze:
 
 		candidates = self._select_candidates()
 		self.first, self.last = sample(candidates, 2)
-		self.maze[self.first].mark_entrance()
-		self.maze[self.last].mark_exit()
+		self.tiles[self.first].mark_entrance()
+		self.tiles[self.last].mark_exit()
 
 		self._remove_exit_wall(self.first)
 		self._remove_exit_wall(self.last)
@@ -130,19 +129,19 @@ class Maze:
 			return
 
 		if exit_row == 0:
-			self.maze[exit_index].remove_top()
+			self.tiles[exit_index].remove_top()
 			return
 
 		if exit_col == (self.row_size - 1):
-			self.maze[exit_index].remove_right()
+			self.tiles[exit_index].remove_right()
 			return
 
 		if exit_row == (self.col_size - 1):
-			self.maze[exit_index].remove_bottom()
+			self.tiles[exit_index].remove_bottom()
 			return
 
 		if exit_col == 0:
-			self.maze[exit_index].remove_left()
+			self.tiles[exit_index].remove_left()
 			return
 
 	def _remove_corner_wall(self, exit_index, exit_row, exit_col):
@@ -150,22 +149,22 @@ class Maze:
 
 		if exit_row == 0 and exit_col == 0:
 			walls = (1, 8)
-			self.maze[exit_index].remove_wall(choice(walls))
+			self.tiles[exit_index].remove_wall(choice(walls))
 			return 1
 
 		if exit_row == 0 and exit_col == (self.row_size - 1):
 			walls = (1, 2)
-			self.maze[exit_index].remove_wall(choice(walls))
+			self.tiles[exit_index].remove_wall(choice(walls))
 			return 1
 
 		if exit_row == (self.col_size - 1) and exit_col == 0:
 			walls = (4, 8)
-			self.maze[exit_index].remove_wall(choice(walls))
+			self.tiles[exit_index].remove_wall(choice(walls))
 			return 1
 
 		if exit_row == (self.col_size - 1) and exit_col == (self.row_size - 1):
 			walls = (4, 2)
-			self.maze[exit_index].remove_wall(choice(walls))
+			self.tiles[exit_index].remove_wall(choice(walls))
 			return 1
 
 		return 0
@@ -175,20 +174,20 @@ class Maze:
 		direction, distance = self._get_direction_and_distance(current, next_cell)
 
 		if direction == 'bottom-right' and distance == 1:
-			self.maze[current].remove_right()
-			self.maze[next_cell].remove_left()
+			self.tiles[current].remove_right()
+			self.tiles[next_cell].remove_left()
 
 		if direction == 'bottom-right' and distance == self.row_size:
-			self.maze[current].remove_bottom()
-			self.maze[next_cell].remove_top()
+			self.tiles[current].remove_bottom()
+			self.tiles[next_cell].remove_top()
 
 		if direction == 'top-left' and distance == 1:
-			self.maze[current].remove_left()
-			self.maze[next_cell].remove_right()
+			self.tiles[current].remove_left()
+			self.tiles[next_cell].remove_right()
 
 		if direction == 'top-left' and distance == self.row_size:
-			self.maze[current].remove_top()
-			self.maze[next_cell].remove_bottom()
+			self.tiles[current].remove_top()
+			self.tiles[next_cell].remove_bottom()
 
 	@staticmethod
 	def _get_direction_and_distance(current, next_cell):
@@ -208,26 +207,30 @@ class Maze:
 		# top neighbor
 		if get_row(current, self.row_size) > 0:  # if tile not on the top border
 			n_index = current - self.row_size
-			if not self.maze[n_index].visited():
+			if not self.tiles[n_index].visited():
 				neighbors.append(n_index)
 
 		# right neighbor
 		if get_column(current, self.row_size) < self.row_size - 1:  # if tile not on the right border
 			n_index = current + 1
-			if not self.maze[n_index].visited():
+			if not self.tiles[n_index].visited():
 				neighbors.append(n_index)
 
 		# bottom neighbor
 		if get_row(current, self.row_size) < self.col_size - 1:  # if tile not on the bottom border
 			n_index = current + self.row_size
-			if not self.maze[n_index].visited():
+			if not self.tiles[n_index].visited():
 				neighbors.append(n_index)
 
 		# left neighbor
 		if get_column(current, self.row_size) > 0:  # if tile not on the left border
 			n_index = current - 1
-			if not self.maze[n_index].visited():
+			if not self.tiles[n_index].visited():
 				neighbors.append(n_index)
 
 		return neighbors
 
+	def clear_visited(self):
+		for tile in self.tiles:
+			if tile.visited():
+				tile.unmark_visited()

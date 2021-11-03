@@ -1,4 +1,20 @@
 class Tile:
+	# #################### Tile composition #################### #
+	# 4 bytes													 #
+	# first 2 bytes - prev index								 #
+	# index / row_size = row (y_axis)							 #
+	# index % row_size = column (x-axis)						 #
+	# [0, 0]                  -> top-right corner				 #
+	# [row_size, column_size] -> bottom-left corner    		 	 #
+	# 															 #
+	# 2^0 - top wall											 #
+	# 2^1 - right wall											 #
+	# 2^2 - bottom wall											 #
+	# 2^3 - left wall											 #
+	# 2^4 - marked as visited									 #
+	# 2^5 - entrance (first tile in the maze)					 #
+	# 2^6 - exit (last tile in the maze)						 #
+	# #################### Tile composition #################### #
 
 	def __init__(self):
 		self.state: int = 0b1111
@@ -58,27 +74,10 @@ class Tile:
 		return str(self.state)
 
 
-def get_row(index, row_size):
+def get_row(index: int, row_size: int) -> int:
 	return int(index / row_size)
 
 
 def get_column(index, row_size):
 	return index % row_size
 
-
-# #################### Tile composition #################### #
-# 4 bytes													 #
-# first 2 bytes - prev index								 #
-# index / row_size = row (y_axis)							 #
-# index % row_size = column (x-axis)						 #
-# [0, 0]                  -> top-right corner				 #
-# [row_size, column_size] -> bottom-left corner    		 	 #
-# 															 #
-# 2^0 - top wall											 #
-# 2^1 - right wall											 #
-# 2^2 - bottom wall											 #
-# 2^3 - left wall											 #
-# 2^4 - marked as visited									 #
-# 2^5 - entrance (first tile in the maze)					 #
-# 2^6 - exit (last tile in the maze)						 #
-# #################### Tile composition #################### #
